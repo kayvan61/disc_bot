@@ -68,6 +68,31 @@ class ImageModi(commands.Cog):
 
         await post_image(f"{ctx.author}_output.png", ctx.channel)
 
+    @commands.command(name="compress", description='heavily compress an image.')
+    async def compress(self, ctx):
+        try:
+            contentType = ctx.message.attachments[0].content_type.split("/")[0]
+            logging.debug(f"attachment type: {contentType}")
+            if "image" not in contentType:
+                raise ValueError("attachment not an image")
+            await ctx.message.attachments[0].save(fp=f"{ctx.author}_input.png") 
+        except IndexError as ex:
+            logging.warning(f"{ctx.author} attempted to transform without attaching image")
+            return
+        except ValueError as ex:
+            logging.warning(f"{ctx.author} attempted to transform non image")
+        logging.info(f"transforming {ctx.author}'s image")        
+
+        # nuke the image
+        image = Image.open(f"{ctx.author}_input.png")
+        image.load()
+        image = image.convert("RGB")
+        image.save(f"{ctx.author}_output.jpg", quality=1, format='JPEG')
+
+        await post_image(f"{ctx.author}_output.jpg", ctx.channel)
+        os.remove(f"{ctx.author}_output.jpg")
+
+
 async def setup(bot):
     await bot.add_cog(ImageModi(bot))
 
