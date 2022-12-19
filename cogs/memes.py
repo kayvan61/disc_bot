@@ -22,10 +22,16 @@ class Memes(commands.Cog):
     @commands.command(name="regMeme", description='register a meme for future use')
     async def reg_meme(self, ctx):
         try:
+            contentType = ctx.message.attachments[0].content_type.split("/")[0]
+            logging.debug(f"attachment type: {contentType}")
+            if "image" not in contentType:
+                raise ValueError("attachment not an image")
             await ctx.message.attachments[0].save(fp=f"{ctx.author}_temp_reg.png") 
         except IndexError as ex:
-            logging.warning(f"{ctx.author} attempted to register meme without attaching image")
+            logging.warning(f"{ctx.author} attempted to register without attaching image")
             return
+        except ValueError as ex:
+            logging.warning(f"{ctx.author} attempted to register non image")
         logging.info(f"registering {ctx.author}'s image...")
 
         # image hashing
